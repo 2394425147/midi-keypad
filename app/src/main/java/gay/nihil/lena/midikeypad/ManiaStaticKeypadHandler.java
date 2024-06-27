@@ -12,14 +12,9 @@ public class ManiaStaticKeypadHandler extends KeypadHandler {
     public KeypadData HandleMotionEvent(MotionEvent event) {
         float x = event.getX(event.getActionIndex());
         float width = view.getWidth();
-        int code = 60;
-        if (x > (width / 4) && x < (width / 2)) {
-            code = 61;
-        } else if (x > (width / 2) && x < ((width / 2) + (width / 4))) {
-            code = 62;
-        } else if (x > ((width / 2) + (width / 4))) {
-            code = 63;
-        }
+        float keyWidth = width / 4;
+
+        int code = 60 + (int) (x / keyWidth);
 
         int a = event.getActionMasked();
         if (a == MotionEvent.ACTION_DOWN || a == MotionEvent.ACTION_POINTER_DOWN) {
