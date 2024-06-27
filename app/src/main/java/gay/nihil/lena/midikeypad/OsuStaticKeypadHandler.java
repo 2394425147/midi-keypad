@@ -12,7 +12,7 @@ public class OsuStaticKeypadHandler extends KeypadHandler {
     @Override
     public KeypadData HandleMotionEvent(MotionEvent event) {
         int code = 60;
-        if (event.getX(event.getActionIndex()) > (view.getWidth() / 2)) {
+        if (event.getX(event.getActionIndex()) > ((float) view.getWidth() / 2)) {
             code = 61;
         }
 
