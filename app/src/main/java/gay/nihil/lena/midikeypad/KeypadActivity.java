@@ -18,12 +18,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import gay.nihil.lena.midikeypad.databinding.ActivityKeypadBinding;
 
@@ -59,23 +60,24 @@ public class KeypadActivity extends AppCompatActivity {
         return false;
     };
 
+    private static final byte[] buffer = new byte[3];
+
     void sendNote(boolean on, int code) {
-        byte[] buffer = new byte[32];
-        int numBytes = 0;
         int channel = 3; // MIDI channels 1-16 are encoded as 0-15.
 
         if (on) {
-            buffer[numBytes++] = (byte)(0x90 + (channel - 1)); // note on
+            buffer[0] = (byte) (0x90 + (channel - 1)); // note on
         } else {
-            buffer[numBytes++] = (byte)(0x80 + (channel - 1)); // note off
+            buffer[0] = (byte) (0x80 + (channel - 1)); // note off
         }
 
-        buffer[numBytes++] = (byte)code; // pitch is middle C
-        buffer[numBytes++] = (byte)127; // max velocity
+        buffer[1] = (byte) code; // pitch is middle C
+        buffer[2] = (byte) 127; // max velocity
+
         int offset = 0;
-        // post is non-blocking
         try {
-            port.send(buffer, offset, numBytes);
+            // post is non-blocking
+            port.send(buffer, offset, 3);
         } catch (IOException e) {
             Toast.makeText(getApplicationContext(), "Error while transmitting data", Toast.LENGTH_LONG).show();
         }
@@ -89,10 +91,13 @@ public class KeypadActivity extends AppCompatActivity {
         binding = ActivityKeypadBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            binding.fullscreenContent.getWindowInsetsController().hide(
-                    WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+            WindowInsetsController windowInsetsController =
+                    Objects.requireNonNull(binding.fullscreenContent.getWindowInsetsController());
+
+            windowInsetsController.hide(WindowInsets.Type.statusBars() |
+                    WindowInsets.Type.navigationBars());
         }
-        ActionBar actionBar = getSupportActionBar();
+        ActionBar actionBar = Objects.requireNonNull(getSupportActionBar());
         actionBar.hide();
         binding.fullscreenContent.setOnTouchListener(touchListener);
 
@@ -119,11 +124,11 @@ public class KeypadActivity extends AppCompatActivity {
         }
         binding.fullscreenContent.setImageDrawable(drawable);
 
-        MidiManager m = (MidiManager)this.getSystemService(Context.MIDI_SERVICE);
+        MidiManager m = (MidiManager) this.getSystemService(Context.MIDI_SERVICE);
 
         MidiDeviceInfo info = getIntent().getParcelableExtra("device");
 
-        MidiDeviceInfo.PortInfo[] portInfos = info.getPorts();
+        MidiDeviceInfo.PortInfo[] portInfos = Objects.requireNonNull(info).getPorts();
         for (int j = 0; j < portInfos.length; j++) {
             String portName = portInfos[j].getName();
             if (portInfos[j].getType() == MidiDeviceInfo.PortInfo.TYPE_INPUT) {
@@ -135,7 +140,8 @@ public class KeypadActivity extends AppCompatActivity {
                     } else {
                         port = dev.openInputPort(finalJ);
                         device = dev;
-                    }}, new Handler(Looper.getMainLooper()));
+                    }
+                }, new Handler(Looper.getMainLooper()));
                 return;
             }
         }
@@ -152,7 +158,7 @@ public class KeypadActivity extends AppCompatActivity {
                 device.close();
             }
         } catch (IOException e) {
-            // we dont give a shit
+            // ignored
         }
     }
 }
