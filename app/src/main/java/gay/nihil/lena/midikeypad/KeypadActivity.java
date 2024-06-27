@@ -29,7 +29,6 @@ import java.util.Objects;
 import gay.nihil.lena.midikeypad.databinding.ActivityKeypadBinding;
 
 public class KeypadActivity extends AppCompatActivity {
-    private ActivityKeypadBinding binding;
 
     MidiInputPort port;
 
@@ -88,7 +87,9 @@ public class KeypadActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityKeypadBinding.inflate(getLayoutInflater());
+        gay.nihil.lena.midikeypad.databinding.ActivityKeypadBinding binding =
+                ActivityKeypadBinding.inflate(getLayoutInflater());
+
         setContentView(binding.getRoot());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowInsetsController windowInsetsController =
